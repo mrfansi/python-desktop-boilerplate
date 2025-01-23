@@ -1,0 +1,1 @@
+"""Test suites following the testing pyramid approach."""
