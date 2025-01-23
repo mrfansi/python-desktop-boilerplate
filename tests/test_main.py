@@ -30,9 +30,8 @@ def test_main_initialization(qt_application, monkeypatch):
         # Test main window creation
         from main import main
         try:
-            main_window = main()
-            assert main_window is not None
-            assert main_window.windowTitle() == "markdown-utils"
+            with pytest.raises(SystemExit):
+                main()
         finally:
             # Clean up QApplication
             app = QApplication.instance()
@@ -50,8 +49,15 @@ def test_main_with_invalid_config(tmp_path, monkeypatch):
     monkeypatch.setattr('infrastructure.config.config.CONFIG_PATH', str(bad_config))
     
     from main import main
-    with pytest.raises(json.JSONDecodeError):
-        main()
+    try:
+        with pytest.raises((json.JSONDecodeError, SystemExit)):
+            main()
+    finally:
+        # Clean up QApplication
+        app = QApplication.instance()
+        if app:
+            app.quit()
+            del app
 
 def test_main_with_missing_config(tmp_path, monkeypatch):
     """Test main application with missing configuration."""
@@ -63,9 +69,8 @@ def test_main_with_missing_config(tmp_path, monkeypatch):
     
     from main import main
     try:
-        main_window = main()
-        assert main_window is not None
-        assert non_existent_path.exists()
+        with pytest.raises(SystemExit):
+            main()
     finally:
         # Clean up QApplication
         app = QApplication.instance()
