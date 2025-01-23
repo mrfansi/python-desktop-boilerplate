@@ -1,6 +1,8 @@
 """Main application window implementation."""
 
-from PySide6.QtWidgets import QMainWindow
+from PySide6.QtWidgets import QMainWindow, QStackedWidget, QWidget
+from .screens.login import LoginForm
+from infrastructure.auth.middleware import AuthManager
 from PySide6.QtCore import Qt
 from typing import Any
 from ui.components.file_browser import FileBrowserDialog
@@ -8,18 +10,47 @@ from ui.components.file_browser import FileBrowserDialog
 class MainWindow(QMainWindow):
     """Main application window class."""
     
-    def __init__(self, config: Any, i18n=None):
+    def __init__(self, config: Any, auth_manager: AuthManager, i18n=None):
         """Initialize main window with configuration.
         
         Args:
             config: Application configuration object
+            auth_manager: Authentication manager instance
             i18n: Optional internationalization service
         """
         super().__init__()
         self.config = config
+        self.auth_manager = auth_manager
         self.i18n = i18n
         self.setWindowTitle("Python Desktop App")
         self.setMinimumSize(800, 600)
+        
+        # Create stacked widget for login/main content
+        self.stacked_widget = QStackedWidget(self)
+        self.setCentralWidget(self.stacked_widget)
+        
+        # Initialize login form
+        self.login_form = LoginForm(self.auth_manager)
+        self.login_form.login_success.connect(self.show_main_content)
+        self.stacked_widget.addWidget(self.login_form)
+        
+        # Initialize main content
+        self.main_content = QWidget()
+        self.stacked_widget.addWidget(self.main_content)
+        
+        # Show login form by default
+        self.stacked_widget.setCurrentWidget(self.login_form)
+        
+    def show_main_content(self):
+        """Switch to main content after successful login"""
+        # Initialize main UI components
+        self._init_main_ui()
+        self.stacked_widget.setCurrentWidget(self.main_content)
+        
+    def _init_main_ui(self):
+        """Initialize main UI components"""
+        # Add existing UI components here
+        pass
         
         # Set window flags for native integration
         self.setWindowFlags(
@@ -82,10 +113,10 @@ class MainWindow(QMainWindow):
         layout.addWidget(placeholder)
         
         # Add file browser button
-        from ui.components.button import StyledButton
+        from ui.components.button import Button
         from ui.components.file_browser import FileBrowserDialog
         
-        file_btn = StyledButton("Open File Browser")
+        file_btn = Button("Open File Browser")
         file_btn.clicked.connect(self._show_file_browser)
         layout.addWidget(file_btn)
         

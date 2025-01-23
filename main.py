@@ -7,6 +7,21 @@ from ui.main_window import MainWindow
 from infrastructure.config import load_config
 from infrastructure.logging import setup_logging
 from infrastructure.security.env_validator import EnvironmentValidator
+from infrastructure.auth.middleware import AuthManager
+from infrastructure.auth.decorators import init_auth_decorators
+
+def get_roles_for_user(user_id: str):
+    """Example implementation of role provider"""
+    # This should be replaced with actual role fetching logic
+    from infrastructure.auth.models import Role, Permission
+    return [
+        Role(
+            id='admin-role',
+            name='Admin',
+            description='System administrator',
+            permissions=[Permission.MANAGE_USERS, Permission.MANAGE_ROLES]
+        )
+    ]
 from services.i18n_service import I18nService
 
 def main():
@@ -21,6 +36,10 @@ def main():
         # Setup logging
         setup_logging(config)
         
+        # Initialize authentication system
+        auth_manager = AuthManager(get_roles_for_user)
+        auth_decorators = init_auth_decorators(auth_manager)
+        
         # Create or get existing application instance
         app = QApplication.instance() or QApplication([])
         
@@ -29,8 +48,8 @@ def main():
         i18n = I18nService(app, locale_dir)
         i18n.set_language(config.get("language", "en"))
         
-        # Create main window
-        window = MainWindow(config, i18n)
+        # Create main window with authentication
+        window = MainWindow(config, auth_manager, i18n)
         window.show()
         
         # Run application
