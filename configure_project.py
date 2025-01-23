@@ -60,7 +60,7 @@ def update_setup_py(project_details: Dict[str, str]):
         f.write(content)
 
 def update_readme(project_details: Dict[str, str]):
-    """Update README.md with project details."""
+    """Update README.md title and description only."""
     readme_path = Path('README.md')
     if not readme_path.exists():
         raise FileNotFoundError("README.md not found")
@@ -68,11 +68,12 @@ def update_readme(project_details: Dict[str, str]):
     with open(readme_path, 'r') as f:
         content = f.read()
         
-    # Update title and description
+    # Update only title and description
     content = re.sub(
         r'# Python Desktop Boilerplate\n\nA modern Python desktop application boilerplate',
         f'# {project_details["project_name"]}\n\n{project_details["description"]}',
-        content
+        content,
+        1  # Only replace first occurrence
     )
     
     with open(readme_path, 'w') as f:
