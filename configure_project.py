@@ -8,17 +8,25 @@ import json
 from pathlib import Path
 from typing import Dict
 
+def remove_quotes(value: str) -> str:
+    """Remove surrounding quotes from value if present."""
+    return value.strip('"') if value.startswith('"') and value.endswith('"') else value
+
+def add_quotes_if_contains_spaces(value: str) -> str:
+    """Add quotes around value if it contains spaces."""
+    return f'"{value}"' if ' ' in value else value
+
 def get_project_details() -> Dict[str, str]:
     """Prompt user for project details."""
     print("Python Desktop Boilerplate Configuration")
     print("=" * 40)
     
     details = {
-        'project_name': input("Project name: ").strip(),
+        'project_name': add_quotes_if_contains_spaces(input("Project name: ").strip()),
         'project_version': input("Project version [1.0.0]: ").strip() or "1.0.0",
-        'description': input("Project description: ").strip(),
-        'author': input("Author name: ").strip(),
-        'author_email': input("Author email: ").strip(),
+        'description': add_quotes_if_contains_spaces(input("Project description: ").strip()),
+        'author': add_quotes_if_contains_spaces(input("Author name: ").strip()),
+        'author_email': add_quotes_if_contains_spaces(input("Author email: ").strip()),
         'license': input("License [MIT]: ").strip() or "MIT",
     }
     
@@ -46,11 +54,11 @@ def update_setup_py(project_details: Dict[str, str]):
         content = f.read()
         
     replacements = {
-        'name="python-desktop-boilerplate"': f'name="{project_details["project_slug"]}"',
-        'version="1.0.0"': f'version="{project_details["project_version"]}"',
-        'description="Modern Python desktop application boilerplate"': f'description="{project_details["description"]}"',
-        'author="Your Name"': f'author="{project_details["author"]}"',
-        'author_email="your.email@example.com"': f'author_email="{project_details["author_email"]}"',
+        'name="python-desktop-boilerplate"': f'name="{remove_quotes(project_details["project_slug"])}"',
+        'version="1.0.0"': f'version="{remove_quotes(project_details["project_version"])}"',
+        'description="Modern Python desktop application boilerplate"': f'description="{remove_quotes(project_details["description"])}"',
+        'author="Your Name"': f'author="{remove_quotes(project_details["author"])}"',
+        'author_email="your.email@example.com"': f'author_email="{remove_quotes(project_details["author_email"])}"',
         'License :: OSI Approved :: MIT License': f'License :: OSI Approved :: {project_details["license"]} License',
     }
     
@@ -90,9 +98,9 @@ def update_config_json(project_details: Dict[str, str]):
         with open(config_path, 'r') as f:
             config = json.load(f)
             
-        # Update name and version
-        config['app']['name'] = project_details['project_name']
-        config['app']['version'] = project_details['project_version']
+        # Update name and version (remove quotes if present)
+        config['app']['name'] = remove_quotes(project_details['project_name'])
+        config['app']['version'] = remove_quotes(project_details['project_version'])
         
         with open(config_path, 'w') as f:
             json.dump(config, f, indent=2)
