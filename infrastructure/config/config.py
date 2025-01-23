@@ -4,10 +4,13 @@ import json
 from pathlib import Path
 from typing import Any, Dict
 
+# Default configuration file path
+CONFIG_PATH = "config.json"
+
 class Config:
     """Application configuration manager."""
     
-    def __init__(self, config_path: str = "config.json"):
+    def __init__(self, config_path: str = CONFIG_PATH):
         """Initialize configuration manager.
         
         Args:
@@ -15,6 +18,26 @@ class Config:
         """
         self.config_path = Path(config_path)
         self._config = self._load_config()
+        
+    def __contains__(self, key: str) -> bool:
+        """Check if key exists in configuration."""
+        if '.' in key:
+            # Handle nested keys
+            keys = key.split('.')
+            current = self._config
+            try:
+                for k in keys:
+                    current = current[k]
+                return True
+            except (KeyError, TypeError):
+                return False
+        else:
+            # Handle top-level keys
+            return key in self._config
+            
+    def __iter__(self):
+        """Iterate over configuration keys."""
+        return iter(self._config)
         
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from file.
