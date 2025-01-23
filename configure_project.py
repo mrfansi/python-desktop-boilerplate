@@ -77,10 +77,10 @@ def update_readme(project_details: Dict[str, str]):
     with open(readme_path, 'r') as f:
         content = f.read()
         
-    # Update only title and description
+    # Update only title and description (remove quotes if present)
     content = re.sub(
         r'# Python Desktop Boilerplate\n\nA modern Python desktop application boilerplate',
-        f'# {project_details["project_name"]}\n\n{project_details["description"]}',
+        f'# {remove_quotes(project_details["project_name"])}\n\n{remove_quotes(project_details["description"])}',
         content,
         1  # Only replace first occurrence
     )
