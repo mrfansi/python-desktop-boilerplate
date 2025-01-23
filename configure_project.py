@@ -4,6 +4,7 @@
 import os
 import re
 import secrets
+import json
 from pathlib import Path
 from typing import Dict
 
@@ -79,6 +80,25 @@ def update_readme(project_details: Dict[str, str]):
     with open(readme_path, 'w') as f:
         f.write(content)
 
+def update_config_json(project_details: Dict[str, str]):
+    """Update config.json with project details."""
+    config_path = Path('config.json')
+    if not config_path.exists():
+        raise FileNotFoundError("config.json not found")
+        
+    try:
+        with open(config_path, 'r') as f:
+            config = json.load(f)
+            
+        # Update name and version
+        config['app']['name'] = project_details['project_name']
+        config['app']['version'] = project_details['project_version']
+        
+        with open(config_path, 'w') as f:
+            json.dump(config, f, indent=2)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON in config.json: {str(e)}")
+
 def create_env_file(env_vars: Dict[str, str]):
     """Create or update .env file with environment variables."""
     env_path = Path('.env')
@@ -100,10 +120,11 @@ def main():
         # Update configuration files
         update_setup_py(project_details)
         update_readme(project_details)
+        update_config_json(project_details)
         create_env_file(env_vars)
         
         print("\nProject configuration complete!")
-        print(f"Created/updated files: .env, setup.py, README.md")
+        print(f"Created/updated files: .env, setup.py, README.md, config.json")
         print("\nNext steps:")
         print("1. Review the configuration files")
         print("2. Run 'pip install -r requirements.txt' to install dependencies")
