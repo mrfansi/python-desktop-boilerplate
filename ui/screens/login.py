@@ -1,4 +1,5 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QMessageBox
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
+from ..components.notification_manager import NotificationManager
 from PySide6.QtCore import Signal
 from infrastructure.auth.middleware import AuthManager
 from ..components.button import Button
@@ -72,7 +73,10 @@ class LoginForm(QWidget):
         if not username or not password:
             error_msg = "Please enter both username and password"
             self.login_failed.emit(error_msg)
-            QMessageBox.warning(self, "Login Failed", error_msg)
+            NotificationManager.get_instance().show_notification(
+                error_msg,
+                type="error"
+            )
             return
             
         try:
