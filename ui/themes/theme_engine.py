@@ -2,6 +2,7 @@
 
 from typing import Dict, Any, Optional
 from PySide6.QtCore import QObject, Signal
+from PySide6.QtWidgets import QWidget
 from ui.themes.theme_config import LIGHT_THEME, DARK_THEME, get_component_styles
 
 class ThemeEngine(QObject):

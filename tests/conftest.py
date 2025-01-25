@@ -7,9 +7,16 @@ from dependency_injector import providers
 @pytest.fixture(scope="session")
 def qt_application():
     """Provide QApplication instance for GUI tests."""
+    # Clean up any existing QApplication instance
+    existing_app = QApplication.instance()
+    if existing_app:
+        existing_app.quit()
+    
     app = QApplication([])
-    yield app
-    app.quit()
+    try:
+        yield app
+    finally:
+        app.quit()
 
 @pytest.fixture
 def config_provider():

@@ -15,6 +15,14 @@ class Checkbox(ThemedWidget):
         self._init_ui()
         self._connect_signals()
         
+    def _create_layout(self):
+        """Create and return layout for checkbox."""
+        from PySide6.QtWidgets import QHBoxLayout
+        layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(8)
+        return layout
+        
     def _init_ui(self):
         """Initialize UI components."""
         layout = self._create_layout()

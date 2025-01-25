@@ -16,6 +16,7 @@ def test_theme_engine_singleton():
 def test_theme_switching():
     """Test theme switching functionality."""
     engine = ThemeEngine.get_instance()
+    engine.switch_theme("light")  # Ensure light theme is set
     
     # Test initial theme
     assert engine.current_theme == "light"

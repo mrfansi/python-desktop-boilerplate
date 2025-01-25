@@ -7,6 +7,7 @@ from ui.components.button import StyledButton
 from ui.components.input import StyledInput
 from ui.components.form_builder import FormBuilder
 from ui.components.checkbox import Checkbox
+from ui.themes.theme_engine import ThemeEngine
 
 def test_form_builder(qtbot):
     """Test form builder component."""
