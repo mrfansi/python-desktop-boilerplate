@@ -1,10 +1,11 @@
-"""Reusable input field component."""
+"""Reusable input field component with theme support."""
 
 from PySide6.QtWidgets import QLineEdit
 from PySide6.QtCore import Qt, Signal
+from ui.themes.theme_engine import ThemeEngine
 
 class StyledInput(QLineEdit):
-    """Custom styled input field."""
+    """Custom styled input field with theme support."""
     
     enter_pressed = Signal()
     
@@ -16,30 +17,25 @@ class StyledInput(QLineEdit):
             parent: Parent widget
         """
         super().__init__(parent)
-        self._setup_style(placeholder)
+        self._theme_engine = ThemeEngine.get_instance()
+        self._setup_input(placeholder)
         
-    def _setup_style(self, placeholder: str):
-        """Configure input styling."""
+        # Subscribe to theme changes
+        self._theme_engine.theme_changed.connect(self._on_theme_changed)
+        
+    def _setup_input(self, placeholder: str):
+        """Configure input widget."""
         self.setPlaceholderText(placeholder)
         self.setMinimumHeight(40)
-        self.setStyleSheet("""
-            QLineEdit {
-                border: 1px solid #ced4da;
-                border-radius: 4px;
-                padding: 8px 12px;
-                font-size: 14px;
-                background-color: white;
-                color: #212529;
-            }
-            QLineEdit:focus {
-                border-color: #80bdff;
-                outline: none;
-            }
-            QLineEdit:disabled {
-                background-color: #e9ecef;
-                color: #6c757d;
-            }
-        """)
+        self._apply_theme()
+        
+    def _on_theme_changed(self, _):
+        """Handle theme changes."""
+        self._apply_theme()
+        
+    def _apply_theme(self):
+        """Apply current theme styles."""
+        self._theme_engine.apply_theme_to_widget(self, "input")
         
     def keyPressEvent(self, event):
         """Handle key press events."""

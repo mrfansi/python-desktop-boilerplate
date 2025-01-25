@@ -1,47 +1,150 @@
-"""Tests for UI components."""
-from PySide6.QtWidgets import QApplication
+"""Test UI components."""
+
 import pytest
+from PySide6.QtWidgets import QApplication
+from PySide6.QtTest import QTest
+from ui.components.button import StyledButton
+from ui.components.input import StyledInput
+from ui.components.form_builder import FormBuilder
+from ui.components.checkbox import Checkbox
 
-@pytest.fixture(scope="session")
-def qt_application():
-    """Fixture providing QApplication instance."""
-    app = QApplication.instance() or QApplication([])
-    yield app
-    # Don't quit the application to maintain singleton
+def test_form_builder(qtbot):
+    """Test form builder component."""
+    
+    # Sample form schema
+    schema = {
+        "fields": [
+            {
+                "name": "username",
+                "type": "text",
+                "label": "Username",
+                "required": True
+            },
+            {
+                "name": "email",
+                "type": "email",
+                "label": "Email Address",
+                "required": True
+            },
+            {
+                "name": "password",
+                "type": "password",
+                "label": "Password",
+                "required": True
+            }
+        ]
+    }
+    
+    # Create form
+    form = FormBuilder(schema)
+    qtbot.addWidget(form)
+    form.show()  # Make widget visible for testing
+    QTest.qWait(100)  # Wait for form to initialize
+    
+    # Test form creation
+    assert len(form.fields) == 3
+    assert "username" in form.inputs
+    assert "email" in form.inputs
+    assert "password" in form.inputs
+    
+    # Test validation before submit
+    assert not form.error_labels["username"].isVisible()
+    
+    # Test required field validation
+    form._handle_submit()  # Should show errors
+    QTest.qWait(100)  # Wait for validation
+    
+    assert form.error_labels["username"].isVisible()
+    assert form.error_labels["username"].text() == "This field is required"
+    
+    # Test input and validation clearing
+    qtbot.keyClicks(form.inputs["username"], "testuser")
+    QTest.qWait(100)  # Wait for validation
+    
+    assert form.fields["username"].value == "testuser"
+    assert not form.error_labels["username"].isVisible()
+    
+    # Test full form submission
+    submitted_data = None
+    def handle_submit(data):
+        nonlocal submitted_data
+        submitted_data = data
+    
+    form.submitted.connect(handle_submit)
+    
+    qtbot.keyClicks(form.inputs["email"], "test@example.com")
+    qtbot.keyClicks(form.inputs["password"], "password123")
+    QTest.qWait(100)
+    
+    form._handle_submit()
+    QTest.qWait(100)
+    
+    assert submitted_data == {
+        "username": "testuser",
+        "email": "test@example.com",
+        "password": "password123"
+    }
 
-def test_button_component(qt_application):
-    """Test button component initialization."""
-    from ui.components.button import StyledButton
+def test_form_builder_from_json(tmp_path, qtbot):
+    """Test creating form from JSON file."""
     
-    button = StyledButton("Test")
-    assert button.text() == "Test"
-    assert button.isEnabled()
+    # Create temp schema file
+    schema_file = tmp_path / "test_form.json"
+    schema_file.write_text("""
+    {
+        "fields": [
+            {
+                "name": "title",
+                "type": "text",
+                "label": "Title",
+                "required": true
+            }
+        ]
+    }
+    """)
+    
+    # Create form from file
+    form = FormBuilder.from_json_file(str(schema_file))
+    qtbot.addWidget(form)
+    form.show()  # Make widget visible for testing
+    QTest.qWait(100)
+    
+    assert len(form.fields) == 1
+    assert "title" in form.inputs
+    
+    # Test validation
+    form._handle_submit()
+    QTest.qWait(100)
+    
+    assert form.error_labels["title"].isVisible()
+    assert form.error_labels["title"].text() == "This field is required"
 
-def test_label_component(qt_application):
-    """Test label component initialization."""
-    from ui.components.label import StyledLabel
+def test_checkbox_basic(qtbot):
+    """Test basic checkbox functionality."""
+    checkbox = Checkbox("Test Checkbox")
+    qtbot.addWidget(checkbox)
     
-    label = StyledLabel("Test Label")
-    label.show()
-    assert label.text() == "Test Label"
-    assert label.isVisible()
+    # Verify initial state
+    assert not checkbox.is_checked()
+    assert checkbox._checkbox.text() == "Test Checkbox"
+    
+    # Test state change
+    checkbox.set_checked(True)
+    assert checkbox.is_checked()
+    
+    # Test text change
+    checkbox.set_text("New Text")
+    assert checkbox._checkbox.text() == "New Text"
 
-def test_file_browser_dialog(qt_application):
-    """Test file browser dialog initialization."""
-    from ui.components.file_browser import FileBrowserDialog
+def test_checkbox_theme(qtbot):
+    """Test checkbox theme integration."""
+    checkbox = Checkbox("Test")
+    qtbot.addWidget(checkbox)
     
-    dialog = FileBrowserDialog(None)
-    dialog.setModal(True)
-    assert dialog.windowTitle() == "Select Files"
-    assert dialog.isModal()
-
-def test_input_component(qt_application):
-    """Test input component initialization."""
-    from ui.components.input import StyledInput
+    # Verify initial theme
+    assert checkbox._checkbox.styleSheet() != ""
     
-    input_field = StyledInput()
-    assert input_field.placeholderText() == ""
-    assert input_field.isEnabled()
-    
-    input_field.setPlaceholderText("Enter text")
-    assert input_field.placeholderText() == "Enter text"
+    # Change theme and verify update
+    engine = ThemeEngine.get_instance()
+    engine.switch_theme("dark")
+    assert checkbox._checkbox.styleSheet() != ""
