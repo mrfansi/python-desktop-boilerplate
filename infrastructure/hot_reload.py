@@ -94,11 +94,12 @@ class HotReloader(QObject, FileSystemEventHandler):
         # Emit signal to trigger UI update on main thread
         self.reload_requested.emit()
 
-def start_hot_reload(callback: Callable = None) -> Observer:
+def start_hot_reload(callback: Callable[[], None] = None) -> Observer:
     """Start the hot reload observer.
     
     Args:
-        callback: Function to call after reloading modules
+        callback: Optional callback function to execute after modules are reloaded.
+                 The callback takes no arguments and returns nothing.
         
     Returns:
         The file system observer
