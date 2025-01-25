@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+from dotenv import load_dotenv
 from PySide6.QtWidgets import QApplication, QMessageBox
 from ui.main_window import MainWindow
 from infrastructure.config import load_config
@@ -12,6 +13,9 @@ from services.i18n_service import I18nService
 def main():
     """Initialize and run the application."""
     try:
+        # Load environment variables from .env file
+        load_dotenv()
+        
         # Validate environment variables
         env_config = EnvironmentValidator.validate()
         

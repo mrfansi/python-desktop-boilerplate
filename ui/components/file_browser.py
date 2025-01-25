@@ -53,9 +53,21 @@ class FileBrowserDialog(QDialog):
         buttons = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel
         )
-        buttons.accepted.connect(self.accept)
-        buttons.rejected.connect(self.reject)
+        buttons.accepted.connect(self._handle_accept)
+        buttons.rejected.connect(self._handle_reject)
         layout.addWidget(buttons)
+
+    def _handle_accept(self):
+        """Handle dialog acceptance."""
+        selected_files = self.get_selected_files()
+        self.files_selected.emit(selected_files)
+        self.file_list.clear()
+        self.done(QDialog.Accepted)
+
+    def _handle_reject(self):
+        """Handle dialog rejection."""
+        self.file_list.clear()
+        self.done(QDialog.Rejected)
         
     def _add_files(self):
         """Open file dialog to add files."""

@@ -103,7 +103,6 @@ class MainWindow(QMainWindow):
             files = browser.get_selected_files()
             if files:
                 self.statusBar().showMessage(f"Selected: {', '.join(files)}")
-        browser.exec()
         
             
     def _show_about(self):
