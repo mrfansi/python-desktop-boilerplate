@@ -66,20 +66,23 @@ class LoginForm(QWidget):
         
     def attempt_login(self):
         """Handle login attempt with proper validation and error handling"""
-        username = self.username_input.text().strip()
-        password = self.password_input.text().strip()
+        # Set loading state
+        self.login_btn.loading = True
         
-        # Validate inputs
-        if not username or not password:
-            error_msg = "Please enter both username and password"
-            self.login_failed.emit(error_msg)
-            NotificationManager.get_instance().show_notification(
-                error_msg,
-                type="error"
-            )
-            return
-            
         try:
+            username = self.username_input.text().strip()
+            password = self.password_input.text().strip()
+            
+            # Validate inputs
+            if not username or not password:
+                error_msg = "Please enter both username and password"
+                self.login_failed.emit(error_msg)
+                NotificationManager.get_instance().show_notification(
+                    error_msg,
+                    type="error"
+                )
+                return
+                
             # TODO: Implement actual authentication
             # For now, use a mock user ID
             user_id = f"user_{username}"  # Replace with actual authentication
@@ -90,4 +93,10 @@ class LoginForm(QWidget):
         except Exception as e:
             error_msg = f"Login failed: {str(e)}"
             self.login_failed.emit(error_msg)
-            QMessageBox.critical(self, "Login Error", error_msg)
+            NotificationManager.get_instance().show_notification(
+                error_msg,
+                type="error"
+            )
+        finally:
+            # Clear loading state
+            self.login_btn.loading = False

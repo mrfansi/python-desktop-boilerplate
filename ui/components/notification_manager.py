@@ -1,5 +1,6 @@
-from PySide6.QtCore import QObject, Signal, QPoint
+from PySide6.QtCore import QObject, Signal, QPoint, QTimer
 from typing import List
+from weakref import WeakSet
 from .notification import Notification
 
 class NotificationManager(QObject):
@@ -9,9 +10,14 @@ class NotificationManager(QObject):
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.notifications: List[Notification] = []
+        self.notifications = WeakSet()
         self.offset = QPoint(20, 20)
         self.spacing = 10
+        
+        # Setup cleanup timer
+        self.cleanup_timer = QTimer(self)
+        self.cleanup_timer.timeout.connect(self.cleanup_notifications)
+        self.cleanup_timer.start(1000)  # Check every second
         
     @classmethod
     def get_instance(cls):
@@ -30,10 +36,7 @@ class NotificationManager(QObject):
         notification = Notification(message, type, duration)
         self.position_notification(notification)
         notification.show()
-        self.notifications.append(notification)
-        
-        # Connect close event to cleanup
-        notification.destroyed.connect(self.cleanup_notifications)
+        self.notifications.add(notification)
         
     def position_notification(self, notification):
         """Position notification in bottom-right corner"""
@@ -48,5 +51,6 @@ class NotificationManager(QObject):
         notification.move(x, y)
         
     def cleanup_notifications(self):
-        """Remove closed notifications from list"""
-        self.notifications = [n for n in self.notifications if n.isVisible()]
+        """Remove closed notifications from weak set"""
+        # WeakSet automatically removes collected objects
+        pass
