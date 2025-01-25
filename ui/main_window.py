@@ -1,27 +1,29 @@
 """Main application window implementation."""
 
-from PySide6.QtWidgets import QMainWindow
-from PySide6.QtCore import Qt
 from typing import Any
+from PySide6.QtWidgets import (
+    QMainWindow, QWidget, QVBoxLayout,
+    QLabel, QMessageBox
+)
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QColor
 from ui.components.file_browser import FileBrowserDialog
+from ui.components.button import StyledButton
+from ui.components.loading_spinner import LoadingSpinner
+from ui.components.progress import ProgressBarWithLabel
 
 class MainWindow(QMainWindow):
     """Main application window class."""
     
     def __init__(self, config: Any, i18n=None):
-        """Initialize main window with configuration.
-        
-        Args:
-            config: Application configuration object
-            i18n: Optional internationalization service
-        """
+        """Initialize main window with configuration."""
         super().__init__()
         self.config = config
         self.i18n = i18n
         self.setWindowTitle("Python Desktop App")
         self.setMinimumSize(800, 600)
         
-        # Set window flags for native integration
+        # Set window flags
         self.setWindowFlags(
             Qt.Window |
             Qt.WindowMinimizeButtonHint |
@@ -29,20 +31,18 @@ class MainWindow(QMainWindow):
             Qt.WindowMaximizeButtonHint
         )
         
-        # Initialize UI components
+        # Initialize UI
         self._setup_ui()
         
     def _setup_ui(self):
         """Setup window UI components."""
-        # Create menu bar
+        # Menu bar
         menubar = self.menuBar()
         
-        # File menu
         file_menu = menubar.addMenu("&File")
         exit_action = file_menu.addAction("Exit")
         exit_action.triggered.connect(self.close)
         
-        # Help menu
         help_menu = menubar.addMenu("&Help")
         about_action = help_menu.addAction("About")
         about_action.triggered.connect(self._show_about)
@@ -50,63 +50,78 @@ class MainWindow(QMainWindow):
         # Status bar
         self.statusBar().showMessage("Ready")
         
-        # Main content
-        from PySide6.QtWidgets import (
-            QWidget, QVBoxLayout, QLabel,
-            QTextEdit, QPushButton
-        )
-        
-        # Create central widget
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        # Create layout
+        # Central widget
+        central = QWidget()
+        self.setCentralWidget(central)
         layout = QVBoxLayout()
-        central_widget.setLayout(layout)
+        central.setLayout(layout)
         
-        # Apply base stylesheet
-        from ui.styles import Styles
-        self.setStyleSheet(Styles.get_stylesheet())
-        
-        # Add app info
+        # App title
         from ui.components.label import StyledLabel
-        app_name = self.config.get("app.name", "Python Desktop App")
-        app_version = self.config.get("app.version", "1.0.0")
-        title_label = StyledLabel(f"{app_name} v{app_version}")
-        title_label.set_heading(1)
-        title_label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(title_label)
+        title = StyledLabel(f"Python Desktop App v1.0.0")
+        title.set_heading(1)
+        title.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title)
         
-        # Add placeholder content
-        placeholder = StyledLabel("Your application content goes here")
-        placeholder.setAlignment(Qt.AlignCenter)
-        layout.addWidget(placeholder)
+        # Demo components section
+        demo_container = QWidget()
+        demo_layout = QVBoxLayout(demo_container)
+        demo_layout.setAlignment(Qt.AlignCenter)
         
-        # Add file browser button
-        from ui.components.button import StyledButton
-        from ui.components.file_browser import FileBrowserDialog
-        
+        # File browser button
         file_btn = StyledButton("Open File Browser")
         file_btn.clicked.connect(self._show_file_browser)
-        layout.addWidget(file_btn)
+        demo_layout.addWidget(file_btn)
+        
+        # Loading spinner section
+        spinner_btn = StyledButton("Toggle Loading")
+        spinner_btn.clicked.connect(self._toggle_spinner)
+        demo_layout.addWidget(spinner_btn)
+        
+        # Spinner container
+        spinner_container = QWidget()
+        spinner_container.setFixedHeight(60)
+        spinner_layout = QVBoxLayout(spinner_container)
+        spinner_layout.setAlignment(Qt.AlignCenter)
+        
+        self.spinner = LoadingSpinner()
+        self.spinner.color = QColor("#007AFF")
+        spinner_layout.addWidget(self.spinner)
+        demo_layout.addWidget(spinner_container)
+        
+        # Progress bar
+        self.progress = ProgressBarWithLabel(
+            label="Download Progress",
+            show_percentage=True,
+            show_text=True
+        )
+        self.progress.setColor(QColor("#28a745"))
+        self.progress.setText("Downloading...")
+        self.progress.setValue(50)
+        demo_layout.addWidget(self.progress)
+        
+        # Add demo container
+        layout.addWidget(demo_container)
         
     def _show_file_browser(self):
         """Show file browser dialog."""
-        from PySide6.QtCore import QTimer
-        
-        # Use QTimer to prevent multiple dialogs
-        QTimer.singleShot(0, lambda: self._open_file_browser())
-        
-    def _open_file_browser(self):
-        """Handle file browser dialog."""
         browser = FileBrowserDialog(self, allowed_extensions=['.txt', '.py'])
         if browser.exec():
             files = browser.get_selected_files()
             if files:
                 self.statusBar().showMessage(f"Selected: {', '.join(files)}")
-        
+
+    def _toggle_spinner(self):
+        """Toggle loading spinner visibility."""
+        if self.spinner.isVisible():
+            self.spinner.stop()
+        else:
+            self.spinner.start()
             
     def _show_about(self):
         """Show about dialog."""
-        from PySide6.QtWidgets import QMessageBox
-        QMessageBox.about(self, "About",
-            "Python Desktop App\nVersion 1.0.0\n\nA sample desktop application")
+        QMessageBox.about(
+            self,
+            "About",
+            "Python Desktop App\nVersion 1.0.0\n\nA sample desktop application"
+        )

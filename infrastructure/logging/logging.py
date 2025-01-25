@@ -10,13 +10,18 @@ def setup_logging(config: Config):
     Args:
         config: Application configuration
     """
-    logging_config = {
-        "level": config.get("logging.level", "INFO"),
-        "format": config.get("logging.format"),
-        "handlers": [
+    # Configure basic logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+        handlers=[
             logging.StreamHandler()
         ]
-    }
+    )
     
-    logging.basicConfig(**logging_config)
-    logging.info("Logging configured successfully")
+    # Suppress unnecessary messages
+    logging.getLogger('PIL').setLevel(logging.WARNING)
+    logging.getLogger('PySide6').setLevel(logging.WARNING)
+    
+    # Log application startup
+    logging.info("Application starting up...")
