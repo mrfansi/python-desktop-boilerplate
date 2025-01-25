@@ -28,7 +28,7 @@ class StyledProgressBar(QProgressBar):
         
         # Configuration
         self._color = QColor("#007AFF")
-        self._height = 40
+        self._height = 20
         self._show_percentage = show_percentage
         self._show_text = show_text
         self._custom_text = ""
