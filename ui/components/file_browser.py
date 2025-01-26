@@ -2,12 +2,15 @@
 
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QListWidget, QFileDialog,
-    QDialogButtonBox, QHBoxLayout, QPushButton
+    QDialogButtonBox, QHBoxLayout, QPushButton, QMessageBox
 )
 from PySide6.QtCore import Qt, Signal
+from ui.themes.theme_engine import ThemeEngine
+from ui.components.base_themed_widget import ThemedWidget
+from ui.components.button import StyledButton
 
 class FileBrowserDialog(QDialog):
-    """Custom file browser dialog."""
+    """Custom themed file browser dialog."""
     
     files_selected = Signal(list)
     
@@ -18,11 +21,27 @@ class FileBrowserDialog(QDialog):
             parent: Parent widget
             allowed_extensions: List of allowed file extensions (e.g. ['.txt', '.py'])
         """
+        # Initialize QDialog
         super().__init__(parent)
+        
         self.setWindowTitle("Select Files")
         self.setMinimumSize(600, 400)
         self.allowed_extensions = allowed_extensions or []
+        
+        # Set up theme engine
+        self._theme_engine = ThemeEngine.get_instance()
+        self._theme_engine.theme_changed.connect(self._apply_theme)
+        
+        # Create widgets before theme initialization
+        self.file_list = QListWidget()
+        self.add_btn = StyledButton("Add Files")
+        self.clear_btn = StyledButton("Clear Selection")
+        self.button_box = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
+        
         self._setup_ui()
+        self._apply_theme(self._theme_engine.theme_data)
         
     def _setup_ui(self):
         """Setup dialog UI."""
@@ -30,7 +49,6 @@ class FileBrowserDialog(QDialog):
         self.setLayout(layout)
         
         # Selected files list
-        self.file_list = QListWidget()
         self.file_list.setSelectionMode(QListWidget.NoSelection)
         layout.addWidget(self.file_list)
         
@@ -38,24 +56,21 @@ class FileBrowserDialog(QDialog):
         btn_layout = QHBoxLayout()
         
         # Add files button
-        add_btn = QPushButton("Add Files")
-        add_btn.clicked.connect(self._add_files)
-        btn_layout.addWidget(add_btn)
+        self.add_btn.set_primary()
+        self.add_btn.clicked.connect(self._add_files)
+        btn_layout.addWidget(self.add_btn)
         
         # Clear selection button
-        clear_btn = QPushButton("Clear Selection")
-        clear_btn.clicked.connect(self._clear_selection)
-        btn_layout.addWidget(clear_btn)
+        self.clear_btn.set_secondary()
+        self.clear_btn.clicked.connect(self._clear_selection)
+        btn_layout.addWidget(self.clear_btn)
         
         layout.addLayout(btn_layout)
         
         # Dialog buttons
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
-        )
-        buttons.accepted.connect(self._handle_accept)
-        buttons.rejected.connect(self._handle_reject)
-        layout.addWidget(buttons)
+        self.button_box.accepted.connect(self._handle_accept)
+        self.button_box.rejected.connect(self._handle_reject)
+        layout.addWidget(self.button_box)
 
     def _handle_accept(self):
         """Handle dialog acceptance."""
@@ -71,8 +86,6 @@ class FileBrowserDialog(QDialog):
         
     def _add_files(self):
         """Open file dialog to add files."""
-        from PySide6.QtWidgets import QMessageBox
-        
         # Build filter string from allowed extensions
         if self.allowed_extensions:
             filter_str = "Allowed Files ("
@@ -119,3 +132,61 @@ class FileBrowserDialog(QDialog):
         """
         return [self.file_list.item(i).text()
                 for i in range(self.file_list.count())]
+    
+    def _apply_theme(self, theme_data: dict):
+        """Apply theme to file browser dialog.
+        
+        Args:
+            theme_data: Theme configuration data
+        """
+        if not hasattr(self, 'file_list'):
+            return
+            
+        # Style list widget
+        self.file_list.setStyleSheet(f"""
+            QListWidget {{
+                background-color: {theme_data.get("background", "#ffffff")};
+                color: {theme_data.get("text", "#212529")};
+                border: 1px solid {theme_data.get("border", "#ced4da")};
+                border-radius: 4px;
+            }}
+            QListWidget::item {{
+                padding: 8px;
+            }}
+            QListWidget::item:hover {{
+                background-color: {theme_data.get("hover_bg", "#e9ecef")};
+            }}
+        """)
+        
+        # Style dialog buttons
+        self.button_box.setStyleSheet(f"""
+            QDialogButtonBox {{
+                button-layout: right;
+            }}
+            QPushButton {{
+                background-color: {theme_data.get("button", {}).get("primary_bg", "#007bff")};
+                color: {theme_data.get("button", {}).get("primary_text", "#ffffff")};
+                border: none;
+                border-radius: 4px;
+                padding: 6px 12px;
+                min-width: 80px;
+            }}
+            QPushButton:hover {{
+                background-color: {theme_data.get("button", {}).get("primary_hover", "#0056b3")};
+            }}
+            QPushButton[text="Cancel"] {{
+                background-color: {theme_data.get("button", {}).get("secondary_bg", "#6c757d")};
+                color: {theme_data.get("button", {}).get("secondary_text", "#ffffff")};
+            }}
+            QPushButton[text="Cancel"]:hover {{
+                background-color: {theme_data.get("button", {}).get("secondary_hover", "#5a6268")};
+            }}
+        """)
+        
+        # Style dialog window
+        self.setStyleSheet(f"""
+            QDialog {{
+                background-color: {theme_data.get("background", "#ffffff")};
+                color: {theme_data.get("text", "#212529")};
+            }}
+        """)
