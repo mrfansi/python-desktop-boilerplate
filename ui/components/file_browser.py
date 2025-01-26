@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, Signal
 from ui.themes.theme_engine import ThemeEngine
-from ui.components.base_themed_widget import ThemedWidget
+from ui.themes.theme_config import get_component_styles
 from ui.components.button import StyledButton
 
 class FileBrowserDialog(QDialog):
@@ -142,51 +142,5 @@ class FileBrowserDialog(QDialog):
         if not hasattr(self, 'file_list'):
             return
             
-        # Style list widget
-        self.file_list.setStyleSheet(f"""
-            QListWidget {{
-                background-color: {theme_data.get("background", "#ffffff")};
-                color: {theme_data.get("text", "#212529")};
-                border: 1px solid {theme_data.get("border", "#ced4da")};
-                border-radius: 4px;
-            }}
-            QListWidget::item {{
-                padding: 8px;
-            }}
-            QListWidget::item:hover {{
-                background-color: {theme_data.get("hover_bg", "#e9ecef")};
-            }}
-        """)
-        
-        # Style dialog buttons
-        self.button_box.setStyleSheet(f"""
-            QDialogButtonBox {{
-                button-layout: right;
-            }}
-            QPushButton {{
-                background-color: {theme_data.get("button", {}).get("primary_bg", "#007bff")};
-                color: {theme_data.get("button", {}).get("primary_text", "#ffffff")};
-                border: none;
-                border-radius: 4px;
-                padding: 6px 12px;
-                min-width: 80px;
-            }}
-            QPushButton:hover {{
-                background-color: {theme_data.get("button", {}).get("primary_hover", "#0056b3")};
-            }}
-            QPushButton[text="Cancel"] {{
-                background-color: {theme_data.get("button", {}).get("secondary_bg", "#6c757d")};
-                color: {theme_data.get("button", {}).get("secondary_text", "#ffffff")};
-            }}
-            QPushButton[text="Cancel"]:hover {{
-                background-color: {theme_data.get("button", {}).get("secondary_hover", "#5a6268")};
-            }}
-        """)
-        
-        # Style dialog window
-        self.setStyleSheet(f"""
-            QDialog {{
-                background-color: {theme_data.get("background", "#ffffff")};
-                color: {theme_data.get("text", "#212529")};
-            }}
-        """)
+        # Apply styles from theme config
+        self.setStyleSheet(get_component_styles(theme_data, "file_browser"))

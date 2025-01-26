@@ -18,9 +18,10 @@ def test_file_browser_creation(qtbot):
     assert hasattr(dialog, 'button_box')
     
     # Verify initial theme is applied
-    assert dialog.file_list.styleSheet() != ""
-    assert dialog.button_box.styleSheet() != ""
     assert dialog.styleSheet() != ""
+    assert "QListWidget" in dialog.styleSheet()
+    assert "QDialogButtonBox" in dialog.styleSheet()
+    assert "background-color" in dialog.styleSheet()
 
 def test_theme_changes(qtbot):
     """Test theme updates."""
@@ -31,17 +32,16 @@ def test_theme_changes(qtbot):
     QTest.qWait(100)
     
     # Get initial styles
-    initial_list_style = dialog.file_list.styleSheet()
-    initial_button_style = dialog.button_box.styleSheet()
+    initial_style = dialog.styleSheet()
     
     # Change theme
     engine.switch_theme("dark")
     QTest.qWait(100)
     
     # Verify styles updated
-    assert dialog.file_list.styleSheet() != initial_list_style
-    assert dialog.button_box.styleSheet() != initial_button_style
-    assert "#212529" in dialog.styleSheet()  # Dark theme background
+    assert dialog.styleSheet() != initial_style
+    assert "#2c3034" in dialog.styleSheet()  # Dark theme background for list
+    assert "#212529" in dialog.styleSheet()  # Dark theme dialog background
 
 def test_file_selection(qtbot, monkeypatch):
     """Test file selection functionality with theming."""

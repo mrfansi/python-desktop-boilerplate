@@ -47,6 +47,16 @@ LIGHT_THEME = {
         "disabled_bg": "#e9ecef",
         "disabled_border": "#dee2e6",
         "text": "#212529"
+    },
+    "file_browser": {
+        "list_bg": "#ffffff",
+        "list_border": "#ced4da",
+        "item_hover": "#e9ecef",
+        "item_selected": "#007bff",
+        "item_selected_text": "#ffffff",
+        "dialog_bg": "#ffffff",
+        "dialog_border": "#ced4da",
+        "button_text": "#ffffff"
     }
 }
 
@@ -95,6 +105,16 @@ DARK_THEME = {
         "disabled_bg": "#343a40",
         "disabled_border": "#495057",
         "text": "#f8f9fa"
+    },
+    "file_browser": {
+        "list_bg": "#2c3034",
+        "list_border": "#495057",
+        "item_hover": "#343a40",
+        "item_selected": "#0d6efd",
+        "item_selected_text": "#ffffff",
+        "dialog_bg": "#212529",
+        "dialog_border": "#495057",
+        "button_text": "#ffffff"
     }
 }
 
@@ -148,6 +168,47 @@ def get_component_styles(theme: Dict[str, Any], component: str) -> str:
             QPushButton:disabled {{
                 background-color: {theme["button"]["disabled_bg"]};
                 color: {theme["button"]["disabled_text"]};
+            }}
+        """
+    elif component == "file_browser":
+        return f"""
+            QDialog {{
+                background-color: {theme["file_browser"]["dialog_bg"]};
+                color: {theme["text"]["primary"]};
+                border: 1px solid {theme["file_browser"]["dialog_border"]};
+            }}
+            QListWidget {{
+                background-color: {theme["file_browser"]["list_bg"]};
+                color: {theme["text"]["primary"]};
+                border: 1px solid {theme["file_browser"]["list_border"]};
+                border-radius: 4px;
+            }}
+            QListWidget::item {{
+                padding: 8px;
+            }}
+            QListWidget::item:hover {{
+                background-color: {theme["file_browser"]["item_hover"]};
+            }}
+            QListWidget::item:selected {{
+                background-color: {theme["file_browser"]["item_selected"]};
+                color: {theme["file_browser"]["item_selected_text"]};
+            }}
+            QDialogButtonBox QPushButton {{
+                background-color: {theme["button"]["primary_bg"]};
+                color: {theme["file_browser"]["button_text"]};
+                border: none;
+                border-radius: 4px;
+                padding: 6px 12px;
+                min-width: 80px;
+            }}
+            QDialogButtonBox QPushButton:hover {{
+                background-color: {theme["primary_hover"]};
+            }}
+            QDialogButtonBox QPushButton[text="Cancel"] {{
+                background-color: {theme["button"]["secondary_bg"]};
+            }}
+            QDialogButtonBox QPushButton[text="Cancel"]:hover {{
+                background-color: {theme["secondary_hover"]};
             }}
         """
     
