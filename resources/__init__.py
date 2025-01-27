@@ -1,1 +1,0 @@
-"""Application assets and translation files."""
